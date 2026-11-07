@@ -1,0 +1,17 @@
+# Secretos
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+
+# Datos personales: nunca subir historiales reales
+data/raw/
+*.jsonl
+conversations.json
+
+# Sistema
+.DS_Store
+Thumbs.db
