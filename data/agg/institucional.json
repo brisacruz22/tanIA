@@ -1,0 +1,41 @@
+{
+  "grupos": [
+    {
+      "grupo": "Tarea 2",
+      "n_personas": 38,
+      "n_prompts": 49,
+      "pct_bajo": 65.3,
+      "habilidad_top": "leer_errores_y_depurar"
+    },
+    {
+      "grupo": "Tarea 3",
+      "n_personas": 40,
+      "n_prompts": 44,
+      "pct_bajo": 50.0,
+      "habilidad_top": "descomponer_problema"
+    },
+    {
+      "grupo": "Tarea 4",
+      "n_personas": 34,
+      "n_prompts": 37,
+      "pct_bajo": 51.4,
+      "habilidad_top": "sintaxis_y_librerias"
+    },
+    {
+      "grupo": "Tarea 5",
+      "n_personas": 39,
+      "n_prompts": 44,
+      "pct_bajo": 63.6,
+      "habilidad_top": "leer_errores_y_depurar"
+    },
+    {
+      "grupo": "Tarea 6",
+      "n_personas": 33,
+      "n_prompts": 38,
+      "pct_bajo": 57.9,
+      "habilidad_top": "leer_errores_y_depurar"
+    }
+  ],
+  "ocultos": 0,
+  "fuente": "Datos: StudyChat (McNichols, Ikram y Lan, 2026), CC BY 4.0. Muestra reclasificada con la tipología de TanIA."
+}

@@ -26,7 +26,7 @@ from ingesta import prompts_de_programacion
 load_dotenv()  # lee ANTHROPIC_API_KEY desde .env
 
 MODELO = "claude-haiku-5-5"
-SALIDA = Path("data/processed/clasificados.jsonl")   # NO se sube (tiene texto)
+SALIDA = Path("data/processed/clasificados_v2.jsonl")  # NO se sube (tiene texto). v2 = tipología realineada con Shen y Tamkin
 AGREGADOS = Path("data/agg/resumen.json")            # SÍ se sube (solo conteos)
 MAX_CARACTERES = 3000                                # recorta prompts muy largos
 
@@ -35,7 +35,7 @@ MAX_CARACTERES = 3000                                # recorta prompts muy largo
 # ---------------------------------------------------------------------------
 Modo = Literal[
     "delegacion_total", "depuracion_iterativa", "dependencia_progresiva",   # bajo aprendizaje
-    "generar_y_explicar", "pregunta_conceptual", "verificar_lo_propio",     # alto aprendizaje
+    "generar_luego_comprender", "hibrido_codigo_explicacion", "pregunta_conceptual",  # alto aprendizaje
 ]
 Habilidad = Literal[
     "descomponer_problema", "leer_errores_y_depurar", "disenar_codigo",
@@ -43,6 +43,7 @@ Habilidad = Literal[
 ]
 Proceso = Literal["planificar", "monitorear", "evaluar", "recordar_y_transferir", "persistir", "ninguno"]
 Contexto = Literal["enunciado_pegado", "pedido_reformulado", "pregunta_propia"]
+Postura = Literal["consultor", "contratista"]
 
 BAJO_APRENDIZAJE = {"delegacion_total", "depuracion_iterativa", "dependencia_progresiva"}
 
@@ -54,6 +55,7 @@ class Clasificacion(BaseModel):
     proceso_cognitivo_omitido: Proceso = Field(description="Proceso metacognitivo que el prompt se salta; 'ninguno' si no se salta ninguno")
     contexto_aportado: Contexto
     esfuerzo_previo_visible: bool = Field(description="True si el prompt muestra un intento propio")
+    postura: Postura = Field(description="consultor si el prompt es interrogativo (pregunta por qué o cómo); contratista si es imperativo (ordena hacer algo)")
     reformulacion: str = Field(default="", description="Versión del prompt que conserva la productividad pero obliga a pensar. Vacío si el modo es de alto aprendizaje. Mismo idioma del prompt.")
     ejercicio: str = Field(default="", description="Un ejercicio corto para practicar la habilidad no ejercitada. Vacío si no aplica.")
     confianza: float | None = Field(default=None, ge=0, le=1)
@@ -66,15 +68,19 @@ INSTRUCCIONES = """Eres un clasificador de prompts que una persona le hizo a un 
 Tu tarea es identificar CÓMO está usando la IA, según una tipología basada en investigación
 (Shen y Tamkin 2026; Rahe et al. 2025; Amoozadeh et al. 2024).
 
-Modos de BAJO aprendizaje:
-- delegacion_total: pide la solución completa sin intento propio ("hazme una función que...", enunciado pegado).
-- depuracion_iterativa: pega un error o código y pide que lo arregle, sin intentar entender por qué falla.
+Modos de BAJO aprendizaje (Shen y Tamkin 2026: 24-39 % en la prueba posterior):
+- delegacion_total: pide la solución completa y la usa tal cual, sin intento propio ("hazme una función que...", enunciado pegado).
+- depuracion_iterativa: le pide a la IA que arregle, depure o VERIFIQUE su código ("¿está bien?", "revisa esto", pega un error)
+  sin pedir entender por qué falla. Mostrar el propio intento y pedir solo revisión TAMBIÉN cuenta aquí.
 - dependencia_progresiva: empezó preguntando, pero ahora pide que la IA lo haga todo (mira el prompt anterior).
 
-Modos de ALTO aprendizaje:
-- generar_y_explicar: pide código Y explicación para entenderlo.
-- pregunta_conceptual: pregunta cómo o por qué funciona algo.
-- verificar_lo_propio: muestra su propio intento y pide revisión.
+Modos de ALTO aprendizaje (Shen y Tamkin 2026: 65-86 %):
+- generar_luego_comprender: después de recibir código (mira el prompt anterior), pregunta para entenderlo
+  ("¿por qué usaste...?", "¿qué hace esta línea?").
+- hibrido_codigo_explicacion: en el MISMO prompt pide código y explicación ("hazlo y explícame cada paso").
+- pregunta_conceptual: solo pregunta cómo o por qué funciona algo, sin pedir código; resuelve por su cuenta.
+
+Postura (Sankaranarayanan 2026): consultor = prompt interrogativo; contratista = prompt imperativo.
 
 Procesos cognitivos (metacognición): planificar (decidir pasos antes de hacer), monitorear
 (darse cuenta de qué falla), evaluar (juzgar si la respuesta tiene sentido), recordar_y_transferir
@@ -162,6 +168,8 @@ def resumir():
     df = pd.DataFrame(filas)
     df = df[df["es_programacion"]]
     df["aprendizaje"] = df["modo"].map(lambda m: "bajo" if m in BAJO_APRENDIZAJE else "alto")
+    # brisa_tesis_2 tiene muy pocos prompts para mostrarse sola: se junta con brisa_tesis
+    df["proyecto"] = df["proyecto"].replace({"brisa_tesis_2": "brisa_tesis"})
 
     def pct(col, por=None):
         if por is None:
@@ -176,6 +184,8 @@ def resumir():
         "habilidad_no_ejercitada_pct": pct("habilidad_no_ejercitada"),
         "proceso_omitido_pct": pct("proceso_cognitivo_omitido"),
         "esfuerzo_previo_pct": round(df["esfuerzo_previo_visible"].mean() * 100, 1),
+        "postura_pct": pct("postura"),
+        "aprendizaje_por_postura_pct": pct("aprendizaje", "postura"),
     }
     AGREGADOS.parent.mkdir(parents=True, exist_ok=True)
     AGREGADOS.write_text(json.dumps(resumen, ensure_ascii=False, indent=2), encoding="utf-8")

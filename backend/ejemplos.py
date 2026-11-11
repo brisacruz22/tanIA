@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pandas as pd
 
-CLASIFICADOS = Path("data/processed/clasificados.jsonl")
+CLASIFICADOS = Path("data/processed/clasificados_v2.jsonl")
 CANDIDATOS = Path("data/processed/ejemplos_candidatos.csv")
 PUBLICO = Path("data/agg/ejemplos.json")
 

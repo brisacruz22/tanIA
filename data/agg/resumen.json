@@ -1,75 +1,81 @@
 {
-  "n_prompts": 306,
+  "n_prompts": 303,
   "modo_pct": {
-    "depuracion_iterativa": 37.9,
-    "pregunta_conceptual": 17.3,
-    "delegacion_total": 16.7,
-    "dependencia_progresiva": 16.0,
-    "verificar_lo_propio": 9.8,
-    "generar_y_explicar": 2.3
+    "depuracion_iterativa": 50.5,
+    "delegacion_total": 20.8,
+    "pregunta_conceptual": 19.1,
+    "dependencia_progresiva": 6.3,
+    "generar_luego_comprender": 2.6,
+    "hibrido_codigo_explicacion": 0.7
   },
   "aprendizaje_por_familiaridad_pct": {
     "conocida": {
-      "alto": 29.7,
-      "bajo": 70.3
+      "alto": 21.8,
+      "bajo": 78.2
     },
     "en_aprendizaje": {
-      "alto": 29.2,
-      "bajo": 70.8
+      "alto": 36.4,
+      "bajo": 63.6
     },
     "nueva": {
-      "alto": 26.3,
-      "bajo": 73.7
+      "alto": 15.8,
+      "bajo": 84.2
     }
   },
   "modo_por_proyecto_pct": {
     "Diplomatura": {
-      "delegacion_total": 8.3,
-      "dependencia_progresiva": 25.0,
-      "depuracion_iterativa": 37.5,
-      "generar_y_explicar": 0.0,
-      "pregunta_conceptual": 20.8,
-      "verificar_lo_propio": 8.3
+      "delegacion_total": 9.1,
+      "dependencia_progresiva": 9.1,
+      "depuracion_iterativa": 45.5,
+      "generar_luego_comprender": 0.0,
+      "hibrido_codigo_explicacion": 0.0,
+      "pregunta_conceptual": 36.4
     },
     "SIEP-NLP universidad": {
       "delegacion_total": 21.1,
-      "dependencia_progresiva": 26.3,
-      "depuracion_iterativa": 26.3,
-      "generar_y_explicar": 0.0,
-      "pregunta_conceptual": 5.3,
-      "verificar_lo_propio": 21.1
+      "dependencia_progresiva": 15.8,
+      "depuracion_iterativa": 47.4,
+      "generar_luego_comprender": 0.0,
+      "hibrido_codigo_explicacion": 0.0,
+      "pregunta_conceptual": 15.8
     },
     "brisa_tesis": {
-      "delegacion_total": 17.3,
-      "dependencia_progresiva": 14.6,
-      "depuracion_iterativa": 38.5,
-      "generar_y_explicar": 2.7,
-      "pregunta_conceptual": 18.1,
-      "verificar_lo_propio": 8.8
-    },
-    "brisa_tesis_2": {
-      "delegacion_total": 0.0,
-      "dependencia_progresiva": 0.0,
-      "depuracion_iterativa": 66.7,
-      "generar_y_explicar": 0.0,
-      "pregunta_conceptual": 0.0,
-      "verificar_lo_propio": 33.3
+      "delegacion_total": 21.8,
+      "dependencia_progresiva": 5.3,
+      "depuracion_iterativa": 51.1,
+      "generar_luego_comprender": 3.1,
+      "hibrido_codigo_explicacion": 0.8,
+      "pregunta_conceptual": 17.9
     }
   },
   "habilidad_no_ejercitada_pct": {
-    "leer_errores_y_depurar": 42.2,
-    "ninguna": 16.3,
-    "disenar_codigo": 14.4,
-    "descomponer_problema": 12.4,
-    "interpretar_resultados": 12.1,
-    "sintaxis_y_librerias": 2.6
+    "leer_errores_y_depurar": 45.2,
+    "disenar_codigo": 17.8,
+    "descomponer_problema": 12.5,
+    "ninguna": 12.2,
+    "interpretar_resultados": 10.2,
+    "sintaxis_y_librerias": 2.0
   },
   "proceso_omitido_pct": {
-    "monitorear": 44.8,
-    "planificar": 29.1,
-    "evaluar": 12.4,
-    "ninguno": 11.8,
-    "recordar_y_transferir": 2.0
+    "monitorear": 42.2,
+    "planificar": 31.7,
+    "evaluar": 14.5,
+    "ninguno": 9.9,
+    "recordar_y_transferir": 1.7
   },
-  "esfuerzo_previo_pct": 73.2
+  "esfuerzo_previo_pct": 71.6,
+  "postura_pct": {
+    "contratista": 71.0,
+    "consultor": 29.0
+  },
+  "aprendizaje_por_postura_pct": {
+    "consultor": {
+      "alto": 64.8,
+      "bajo": 35.2
+    },
+    "contratista": {
+      "alto": 5.1,
+      "bajo": 94.9
+    }
+  }
 }

@@ -12,6 +12,7 @@ Uso:
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 import anthropic
@@ -27,18 +28,23 @@ REMOTO = "hf://datasets/wmcnicho/StudyChat/data.jsonl"
 SALIDA = Path("data/processed/studychat_clasificados.jsonl")
 AGREGADO = Path("data/agg/institucional.json")
 MINIMO_GRUPO = 8
+# Contenido sensible: se excluye antes de clasificar (salud mental, autolesión, abuso, etc.)
+SENSIBLE = r"(?i)suicid|self[- ]?harm|kill myself|depress|anxiety|panic attack|abuse|assault|harass|therap|medicat|pregnan|suicid|autolesi|ansiedad|depresi|abuso|acoso"
 
 # Nombres posibles de columnas (el script elige el primero que exista)
 COL_TEXTO = ["prompt", "user_message", "student_message", "message", "content", "text", "input"]
-COL_PERSONA = ["student_id", "user_id", "user", "anon_id", "student"]
-COL_GRUPO = ["assignment", "assignment_id", "assignment_name", "semester", "term", "course"]
+COL_PERSONA = ["student_id", "user_id", "userId", "user_hash", "hashed_user", "user", "anon_id", "student", "chat_user"]
+COL_GRUPO = ["topic", "assignment", "assignment_id", "assignment_name", "semester", "term", "course"]
 COL_ROL = ["role", "sender", "author"]
 
 
 def cargar() -> pd.DataFrame:
     if LOCAL.exists():
         return pd.read_parquet(LOCAL)
-    df = pd.read_json(REMOTO, lines=True)          # requiere: uv add huggingface_hub
+    token = os.getenv("HF_TOKEN")                  # el dataset es restringido: va en .env, nunca en el repo
+    if not token:
+        raise SystemExit("Falta HF_TOKEN en el archivo .env")
+    df = pd.read_json(REMOTO, lines=True, storage_options={"token": token})
     LOCAL.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(LOCAL)
     return df
@@ -59,12 +65,20 @@ def preparar(df: pd.DataFrame) -> tuple[pd.DataFrame, str, str]:
         df = df[df[rol].astype(str).str.lower().isin(["user", "human", "student"])]
     df = df[[texto, persona, grupo]].dropna().rename(columns={texto: "texto", persona: "persona", grupo: "grupo"})
     df["texto"] = df["texto"].astype(str)
+    sensibles = df["texto"].str.contains(SENSIBLE, regex=True)
+    print(f"Excluidos por contenido sensible: {int(sensibles.sum())}")
+    df = df[~sensibles]
     return df, persona, grupo
 
 
 def correr(n: int):
     df, _, _ = preparar(cargar())
-    muestra = df.sample(min(n, len(df)), random_state=42)
+    # Muestra estratificada: los 5 grupos con más estudiantes y hasta 2 mensajes por estudiante,
+    # para que cada grupo supere el mínimo de 8 personas y se pueda mostrar.
+    top = df.groupby("grupo")["persona"].nunique().nlargest(5).index
+    base = df[df["grupo"].isin(top)].sample(frac=1, random_state=42)
+    base = base.groupby(["grupo", "persona"]).head(2)
+    muestra = base.groupby("grupo").head(n // len(top))   # head conserva la columna grupo
     hechos = set()
     if SALIDA.exists():
         hechos = {json.loads(l)["i"] for l in SALIDA.read_text(encoding="utf-8").splitlines() if l.strip()}
@@ -93,7 +107,8 @@ def agregar():
             ocultos += 1
             continue
         hab = d.loc[d["habilidad_no_ejercitada"] != "ninguna", "habilidad_no_ejercitada"]
-        grupos.append({"grupo": g, "n_personas": int(d["persona"].nunique()), "n_prompts": int(len(d)),
+        nombre = f"Tarea {g[1:]}" if str(g)[:1] == "a" and str(g)[1:].isdigit() else str(g)
+        grupos.append({"grupo": nombre, "n_personas": int(d["persona"].nunique()), "n_prompts": int(len(d)),
                        "pct_bajo": round(d["bajo"].mean() * 100, 1),
                        "habilidad_top": hab.mode().iat[0] if len(hab) else "ninguna"})
     AGREGADO.parent.mkdir(parents=True, exist_ok=True)
