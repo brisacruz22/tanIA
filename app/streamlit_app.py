@@ -36,6 +36,7 @@ h1, h2, h3 { font-family: Georgia, 'Times New Roman', serif !important; font-wei
 .st-key-ketty { background: #14213d; border-radius: 16px; padding: 1.4rem 1.6rem 2.6rem; position: relative; overflow: hidden; }
 .st-key-ketty, .st-key-ketty p, .st-key-ketty h2, .st-key-ketty h3, .st-key-ketty li,
 .st-key-ketty span, .st-key-ketty summary, .st-key-ketty small, .st-key-ketty div[data-testid="stCaptionContainer"] { color: #ffffff !important; }
+.st-key-ketty * { color: #ffffff !important; opacity: 1 !important; }
 .st-key-ketty .etiqueta { color: #f6c945 !important; }
 .st-key-ketty::before { content: "✦"; position: absolute; top: 14px; right: 26px; color: #f6c945; font-size: 1.3rem; opacity: .9; }
 .st-key-ketty::after { content: "✧   ·   ✦"; position: absolute; bottom: 12px; left: 22px; color: #f6c945; font-size: .9rem; opacity: .7; letter-spacing: .3em; }
@@ -123,14 +124,17 @@ def barras(datos: dict, color, titulo_x="% de tus prompts", oscuro=False):
     fig = go.Figure(go.Bar(
         x=valores, y=etiquetas, orientation="h", marker_color=colores,
         text=[f"{v:.0f} %" for v in valores], textposition="outside",
+        textfont=dict(color="#ffffff" if oscuro else TINTA2),
         hovertemplate="%{y}: %{x:.1f} %<extra></extra>",
     ))
     fig.update_layout(
         height=60 + 42 * len(pares), margin=dict(l=10, r=40, t=10, b=30),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="#ffffff" if oscuro else TINTA2), bargap=0.45,
-        xaxis=dict(title=titulo_x, gridcolor="#2c3e66" if oscuro else "#e1e0d9", zeroline=False),
-        yaxis=dict(showgrid=False),
+        xaxis=dict(title=dict(text=titulo_x, font=dict(color="#ffffff" if oscuro else TINTA2)),
+                   tickfont=dict(color="#ffffff" if oscuro else TINTA2),
+                   gridcolor="#2c3e66" if oscuro else "#e1e0d9", zeroline=False),
+        yaxis=dict(showgrid=False, tickfont=dict(color="#ffffff" if oscuro else TINTA2)),
     )
     return fig
 
@@ -185,7 +189,7 @@ def vista_institucional():
     else:
         grupos = inst["grupos"]
         st.plotly_chart(barras({g["grupo"]: g["pct_bajo"] for g in grupos}, BAJO,
-                               "% de prompts con bajo aprendizaje"), width="stretch")
+                               "% de prompts con bajo aprendizaje"), width="stretch", config={"displayModeBar": False})
         for g in grupos:
             st.markdown(f"**{g['grupo']}** · {g['n_personas']} estudiantes · {g['n_prompts']} prompts · "
                         f"habilidad menos practicada: {bonito(g['habilidad_top'])}")
@@ -233,9 +237,13 @@ with uso, st.container(key="tania"):
     st.markdown(f"<div class='frase'>{frase}</div>", unsafe_allow_html=True)
     st.subheader("¿Cómo le pides las cosas a la IA?")
     st.plotly_chart(barras(resumen["modo_pct"], lambda k: BAJO if k in BAJOS else ALTO),
-                    width="stretch")
+                    width="stretch", config={"displayModeBar": False})
     st.markdown(f"<span style='color:{BAJO}'>■</span> bajo aprendizaje &nbsp;&nbsp; "
                 f"<span style='color:{ALTO}'>■</span> alto aprendizaje", unsafe_allow_html=True)
+    st.markdown("<div class='frase'>Estos seis modos vienen de un experimento de Anthropic: quienes usaban los "
+                "<b>modos naranjas</b> sacaron entre 24 y 39 % en la prueba posterior; quienes usaban los "
+                "<b style='color:#2a78d6'>azules</b>, entre 65 y 86 %. La diferencia no está en cuánto usas la IA, sino en cómo "
+                "(Shen y Tamkin, 2026).</div>", unsafe_allow_html=True)
 
     st.subheader("¿Cambia según qué tan conocida es la tarea?")
     fam = resumen.get("aprendizaje_por_familiaridad_pct", {})
@@ -249,15 +257,21 @@ with uso, st.container(key="tania"):
                       paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                       yaxis=dict(title="% de prompts", gridcolor="#e1e0d9"), bargap=0.35,
                       legend=dict(orientation="h", y=1.12), font=dict(color=TINTA2))
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
+    st.markdown("<div class='frase'>Delegar cuando la tarea es <b>nueva</b> es lo que más cuesta: en el mismo "
+                "experimento, aprender una librería desconocida con IA dejó un <b>17 % menos</b> de aprendizaje, "
+                "y la mayor brecha estuvo en depurar (Shen y Tamkin, 2026). Y como el desempeño sube igual, "
+                "casi nadie lo nota (Bastani et al., 2025).</div>", unsafe_allow_html=True)
 
     if resumen.get("postura_pct"):
         st.subheader("¿Consultas o encargas?")
         st.plotly_chart(barras(resumen["postura_pct"], lambda k: ALTO if k == "consultor" else BAJO),
-                        width="stretch")
-        st.caption("Sankaranarayanan (2026): quienes trataban a la IA como consultora (preguntando por qué) "
-                   "pudieron mantener su código sin IA; quienes la trataban como contratista (dando órdenes), "
-                   "en su mayoría no.")
+                        width="stretch", config={"displayModeBar": False})
+        st.markdown("<div class='frase'>Quienes tratan a la IA como <b>consultora</b> (\"¿por qué usaste esto?\") "
+                    "pueden mantener su código sin ella; quienes la tratan como <b>contratista</b> (\"haz que el "
+                    "botón sea azul\"), en su mayoría no. Sin andamiaje, el 77 % no pudo arreglar su propio código "
+                    "sin IA; con una pausa para explicarlo, el 39 % (Sankaranarayanan, 2026).</div>",
+                    unsafe_allow_html=True)
 
     with st.expander("Entender mejor"):
         st.markdown("**Modos por proyecto** (% de prompts de cada proyecto)")
@@ -284,11 +298,11 @@ with cognicion, st.container(key="ketty"):
                 "(Bastani et al., 2025; Kruger y Dunning, 1999).</div>", unsafe_allow_html=True)
     st.subheader("Habilidades técnicas que estás dejando de practicar")
     hab = {k: v for k, v in resumen["habilidad_no_ejercitada_pct"].items() if k != "ninguna"}
-    st.plotly_chart(barras(hab, CELESTE, oscuro=True), width="stretch")
+    st.plotly_chart(barras(hab, CELESTE, oscuro=True), width="stretch", config={"displayModeBar": False})
 
     st.subheader("Procesos de pensamiento que te saltas")
     proc = {k: v for k, v in resumen["proceso_omitido_pct"].items() if k != "ninguno"}
-    st.plotly_chart(barras(proc, CELESTE, oscuro=True), width="stretch")
+    st.plotly_chart(barras(proc, CELESTE, oscuro=True), width="stretch", config={"displayModeBar": False})
     st.caption("Metacognición: planificar antes de hacer, monitorear qué falla y evaluar "
                "si la respuesta tiene sentido. Es lo que la IA hace por ti cuando delegas.")
 
