@@ -9,6 +9,7 @@ __pycache__/
 
 # Datos personales: nunca subir historiales reales
 data/raw/
+data/processed/
 *.jsonl
 conversations.json
 

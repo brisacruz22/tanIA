@@ -1,0 +1,75 @@
+{
+  "n_prompts": 306,
+  "modo_pct": {
+    "depuracion_iterativa": 37.9,
+    "pregunta_conceptual": 17.3,
+    "delegacion_total": 16.7,
+    "dependencia_progresiva": 16.0,
+    "verificar_lo_propio": 9.8,
+    "generar_y_explicar": 2.3
+  },
+  "aprendizaje_por_familiaridad_pct": {
+    "conocida": {
+      "alto": 29.7,
+      "bajo": 70.3
+    },
+    "en_aprendizaje": {
+      "alto": 29.2,
+      "bajo": 70.8
+    },
+    "nueva": {
+      "alto": 26.3,
+      "bajo": 73.7
+    }
+  },
+  "modo_por_proyecto_pct": {
+    "Diplomatura": {
+      "delegacion_total": 8.3,
+      "dependencia_progresiva": 25.0,
+      "depuracion_iterativa": 37.5,
+      "generar_y_explicar": 0.0,
+      "pregunta_conceptual": 20.8,
+      "verificar_lo_propio": 8.3
+    },
+    "SIEP-NLP universidad": {
+      "delegacion_total": 21.1,
+      "dependencia_progresiva": 26.3,
+      "depuracion_iterativa": 26.3,
+      "generar_y_explicar": 0.0,
+      "pregunta_conceptual": 5.3,
+      "verificar_lo_propio": 21.1
+    },
+    "brisa_tesis": {
+      "delegacion_total": 17.3,
+      "dependencia_progresiva": 14.6,
+      "depuracion_iterativa": 38.5,
+      "generar_y_explicar": 2.7,
+      "pregunta_conceptual": 18.1,
+      "verificar_lo_propio": 8.8
+    },
+    "brisa_tesis_2": {
+      "delegacion_total": 0.0,
+      "dependencia_progresiva": 0.0,
+      "depuracion_iterativa": 66.7,
+      "generar_y_explicar": 0.0,
+      "pregunta_conceptual": 0.0,
+      "verificar_lo_propio": 33.3
+    }
+  },
+  "habilidad_no_ejercitada_pct": {
+    "leer_errores_y_depurar": 42.2,
+    "ninguna": 16.3,
+    "disenar_codigo": 14.4,
+    "descomponer_problema": 12.4,
+    "interpretar_resultados": 12.1,
+    "sintaxis_y_librerias": 2.6
+  },
+  "proceso_omitido_pct": {
+    "monitorear": 44.8,
+    "planificar": 29.1,
+    "evaluar": 12.4,
+    "ninguno": 11.8,
+    "recordar_y_transferir": 2.0
+  },
+  "esfuerzo_previo_pct": 73.2
+}
