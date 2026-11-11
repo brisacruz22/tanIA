@@ -8,6 +8,7 @@ más una vista docente agregada y anónima.
 Correr en local:  uv run streamlit run app/streamlit_app.py
 """
 
+import base64
 import json
 import os
 import sys
@@ -70,6 +71,19 @@ h1, h2, h3 { font-family: Georgia, 'Times New Roman', serif !important; font-wei
         border: 1px solid #f3d9c4; border-radius: 24px; padding: 2.4rem 2.2rem 1.6rem; margin-top: 3rem; }
 .logo { font-family: Georgia, serif; font-size: 3.6rem; font-weight: 700; text-align: center; color: #1f1d1a; }
 .lema-ingreso { text-align: center; font-weight: 600; margin-bottom: 1.4rem; }
+.portada { text-align: left; }
+.gif { width: 100%; max-height: 260px; object-fit: cover; border-radius: 16px; margin-bottom: 1.2rem; }
+.evid, .testimonio, .plan { background: #fffdf8; border: 1px solid #ece3d3; border-radius: 16px;
+        padding: 1.1rem 1.2rem; height: 100%; }
+.evid .num { font-family: Georgia, serif; font-size: 2.2rem; font-weight: 700; color: #eb6834; }
+.cita { color: #898781; font-size: .82rem; margin-top: .6rem; }
+.testimonio { border-left: 4px solid #eb6834; font-style: italic; }
+.testimonio .cita { font-style: normal; }
+.plan-nombre { font-weight: 700; font-size: 1.05rem; }
+.plan-precio { font-family: Georgia, serif; font-size: 1.4rem; color: #c4521f; margin: .3rem 0 .5rem; }
+.refs { color: #6b6964; font-size: .8rem; margin-top: 1.6rem; border-top: 1px solid #e8e0d0; padding-top: .8rem; }
+.refs ol { padding-left: 1.2rem; margin: .3rem 0 0; } .refs li { margin-bottom: .25rem; }
+.refs a { color: #6b6964; }
 .pie { text-align: center; color: #52514e; font-size: .85rem; margin-top: 2rem; }
 .stButton button { background: #1f1d1a; color: #fbf6ec; border-radius: 6px 18px 6px 6px; }
 </style>
@@ -145,6 +159,88 @@ def barras(datos: dict, color, titulo_x="% de tus prompts", oscuro=False):
 # ---------------------------------------------------------------------------
 # 2. Ingreso (demo: sin contraseña, con datos de ejemplo)
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# 2. Portada (lo primero que se ve) e ingreso
+# ---------------------------------------------------------------------------
+GIF = RAIZ / "app" / "assets" / "encabezado.gif"   # si existe, se muestra en la portada
+
+
+def gif_html() -> str:
+    if not GIF.exists():
+        return ""
+    datos = base64.b64encode(GIF.read_bytes()).decode()
+    return f"<img class='gif' src='data:image/gif;base64,{datos}' alt='TanIA'>"
+
+
+REFERENCIAS = """<div class='refs'><b>Referencias</b><ol>
+<li>Shen, J. H. y Tamkin, A. (2026, febrero). <i>How AI impacts skill formation</i>. arXiv:2601.20245.
+<a href='https://arxiv.org/abs/2601.20245'>arxiv.org/abs/2601.20245</a></li>
+<li>Bastani, H. et al. (2025, junio). Generative AI without guardrails can harm learning: evidence from high
+school mathematics. <i>PNAS</i>, 122(26). <a href='https://doi.org/10.1073/pnas.2422633122'>doi.org/10.1073/pnas.2422633122</a></li>
+<li>Sankaranarayanan, S. (2026, marzo). Mitigating "epistemic debt" in generative AI-scaffolded novice programming
+using metacognitive scripts. <i>L@S 2026</i>. <a href='https://arxiv.org/abs/2602.20206'>arxiv.org/abs/2602.20206</a></li>
+<li>Bjork, E. L. y Bjork, R. A. (2011). Making things hard on yourself, but in a good way. En <i>Psychology and the Real World</i>.</li>
+<li>Kruger, J. y Dunning, D. (1999). Unskilled and unaware of it. <i>Journal of Personality and Social Psychology</i>, 77(6).</li>
+</ol></div>"""
+
+
+def ir_a_ingreso():
+    st.session_state["pantalla"] = "ingreso"
+
+
+def portada():
+    st.markdown(f"""<div class='hero portada'>{gif_html()}<h1>TanIA</h1>
+<p class='lema'>Haz más con IA, sin dejar de aprender.</p>
+<p class='desc'>La IA te hace más productiva, pero puede quitarte la práctica que te hace aprender.
+TanIA lee tus prompts y te muestra qué habilidades estás dejando de ejercitar, qué procesos de pensamiento
+te saltas y cómo pedir ayuda sin dejar de aprender.</p></div>""", unsafe_allow_html=True)
+    b1, b2, _ = st.columns([1, 1, 3])
+    b1.button("Iniciar sesión", type="primary", width="stretch", on_click=ir_a_ingreso, key="ini1")
+    b2.button("Registrarse", width="stretch", on_click=ir_a_ingreso, key="reg1")
+
+    st.subheader("Por qué importa")
+    e1, e2, e3 = st.columns(3)
+    e1.markdown("<div class='evid'><div class='num'>24–39 %</div>frente a 65–86 % en una prueba de "
+                "aprendizaje, según <b>cómo</b> se usa la IA: delegando o preguntando para entender."
+                "<div class='cita'>Shen y Tamkin, 2026 <sup>1</sup></div></div>", unsafe_allow_html=True)
+    e2.markdown("<div class='evid'><div class='num'>−17 %</div>en el examen sin IA de quienes practicaron "
+                "con ChatGPT sin guardrails, aunque en la práctica rindieron 48 % más. No lo notaron."
+                "<div class='cita'>Bastani et al., 2025 <sup>2</sup></div></div>", unsafe_allow_html=True)
+    e3.markdown("<div class='evid'><div class='num'>77 %</div>no pudo arreglar su propio código sin IA. "
+                "Con una pausa para explicarlo antes de aceptarlo, solo el 39 %."
+                "<div class='cita'>Sankaranarayanan, 2026 <sup>3</sup></div></div>", unsafe_allow_html=True)
+
+    st.subheader("Lo que nos dijeron en las entrevistas")
+    t1, t2, t3 = st.columns(3)
+    t1.markdown("<div class='testimonio'>\"Mi capacidad intelectual alrededor del código ha empeorado, "
+                "mi materia gris está en descanso.\"<div class='cita'>Sofía, analista de datos</div></div>",
+                unsafe_allow_html=True)
+    t2.markdown("<div class='testimonio'>\"Si te hacen una pregunta, you're dead.\"<div class='cita'>"
+                "Mariana, asistente de investigación, sobre presentar código hecho con IA</div></div>",
+                unsafe_allow_html=True)
+    t3.markdown("<div class='testimonio'>\"Tú no puedes evitar que la gente use IA. No lo vas a hacer "
+                "nunca.\"<div class='cita'>Tiago, investigador</div></div>", unsafe_allow_html=True)
+    st.caption("Entrevistas de investigación para diseñar TanIA, realizadas entre el 7 y el 9 de noviembre de 2026, con nombres cambiados. No son reseñas de clientes.")
+
+    st.subheader("Planes")
+    p1, p2, p3, p4 = st.columns(4)
+    planes = [("Prueba", "Gratis", "Hasta 200 prompts. Tu diagnóstico de uso y cognición."),
+              ("Pro", "US$ 4 / mes", "Programación: diagnóstico, reformulaciones, ejercicios y mini prueba sin IA."),
+              ("Pro Completo", "US$ 8 / mes", "Programación y escritura, con plan de aprendizaje y recordatorios."),
+              ("Institucional", "US$ 3–4 / estudiante / año", "Vista agregada por curso, privacidad desde el diseño.")]
+    for col, (nombre, precio, desc) in zip([p1, p2, p3, p4], planes):
+        col.markdown(f"<div class='plan'><div class='plan-nombre'>{nombre}</div>"
+                     f"<div class='plan-precio'>{precio}</div><p>{desc}</p></div>", unsafe_allow_html=True)
+    st.button("Empieza gratis", type="primary", on_click=ir_a_ingreso, key="ini2")
+    st.markdown(REFERENCIAS, unsafe_allow_html=True)
+
+
+if "rol" not in st.session_state and st.session_state.get("pantalla") != "ingreso":
+    portada()
+    st.markdown("<div class='pie'>🔒 Privacidad absoluta: tus prompts no se guardan ni se comparten. "
+                "Las instituciones solo ven datos agregados.</div>", unsafe_allow_html=True)
+    st.stop()
+
 if "rol" not in st.session_state:
     _, centro, _ = st.columns([1, 1.6, 1])
     with centro, st.container(key="ingreso"):
@@ -159,10 +255,14 @@ if "rol" not in st.session_state:
             st.rerun()
         st.caption("Versión demo: no necesitas cuenta ni contraseña y verás datos de ejemplo. "
                    "En la versión final, cada persona solo ve su propio diagnóstico.")
+        if st.button("← Volver", key="volver"):
+            st.session_state["pantalla"] = "portada"
+            st.rerun()
     st.stop()
 
 if st.sidebar.button("Cerrar sesión"):
     del st.session_state["rol"]
+    st.session_state["pantalla"] = "portada"
     st.rerun()
 
 st.markdown("""<div class='hero'><h1>TanIA</h1>
@@ -243,7 +343,7 @@ with uso, st.container(key="tania"):
     st.markdown("<div class='frase'>Estos seis modos vienen de un experimento de Anthropic: quienes usaban los "
                 "<b>modos naranjas</b> sacaron entre 24 y 39 % en la prueba posterior; quienes usaban los "
                 "<b style='color:#2a78d6'>azules</b>, entre 65 y 86 %. La diferencia no está en cuánto usas la IA, sino en cómo "
-                "(Shen y Tamkin, 2026).</div>", unsafe_allow_html=True)
+                "(Shen y Tamkin, 2026) <sup>1</sup>.</div>", unsafe_allow_html=True)
 
     st.subheader("¿Cambia según qué tan conocida es la tarea?")
     fam = resumen.get("aprendizaje_por_familiaridad_pct", {})
@@ -261,7 +361,7 @@ with uso, st.container(key="tania"):
     st.markdown("<div class='frase'>Delegar cuando la tarea es <b>nueva</b> es lo que más cuesta: en el mismo "
                 "experimento, aprender una librería desconocida con IA dejó un <b>17 % menos</b> de aprendizaje, "
                 "y la mayor brecha estuvo en depurar (Shen y Tamkin, 2026). Y como el desempeño sube igual, "
-                "casi nadie lo nota (Bastani et al., 2025).</div>", unsafe_allow_html=True)
+                "casi nadie lo nota (Bastani et al., 2025) <sup>2</sup>.</div>", unsafe_allow_html=True)
 
     if resumen.get("postura_pct"):
         st.subheader("¿Consultas o encargas?")
@@ -270,9 +370,10 @@ with uso, st.container(key="tania"):
         st.markdown("<div class='frase'>Quienes tratan a la IA como <b>consultora</b> (\"¿por qué usaste esto?\") "
                     "pueden mantener su código sin ella; quienes la tratan como <b>contratista</b> (\"haz que el "
                     "botón sea azul\"), en su mayoría no. Sin andamiaje, el 77 % no pudo arreglar su propio código "
-                    "sin IA; con una pausa para explicarlo, el 39 % (Sankaranarayanan, 2026).</div>",
+                    "sin IA; con una pausa para explicarlo, el 39 % (Sankaranarayanan, 2026) <sup>3</sup>.</div>",
                     unsafe_allow_html=True)
 
+    st.markdown(REFERENCIAS, unsafe_allow_html=True)
     with st.expander("Entender mejor"):
         st.markdown("**Modos por proyecto** (% de prompts de cada proyecto)")
         por_proy = resumen.get("modo_por_proyecto_pct", {})
