@@ -88,7 +88,7 @@ def bonito(clave: str) -> str:
     return NOMBRES_MODO.get(clave, clave.replace("_", " ").capitalize())
 
 
-@st.cache_data
+@st.cache_data(ttl=300)   # se refresca si cambian los datos
 def leer(nombre: str):
     ruta = AGG / nombre
     return json.loads(ruta.read_text(encoding="utf-8")) if ruta.exists() else None
@@ -319,7 +319,11 @@ with recomendaciones, st.container(key="sandra"):
         if st.session_state["usos"] >= 5:
             st.warning("Llegaste al límite de 5 análisis en esta sesión.")
         else:
-            clave = st.secrets.get("ANTHROPIC_API_KEY", os.getenv("ANTHROPIC_API_KEY"))
+            try:
+                clave = st.secrets.get("ANTHROPIC_API_KEY")   # en Streamlit Cloud
+            except Exception:                                  # en local no hay secrets.toml
+                clave = None
+            clave = clave or os.getenv("ANTHROPIC_API_KEY")
             if not clave:
                 st.error("Falta configurar la clave de la API.")
             else:

@@ -1,0 +1,18 @@
+[
+  {"modo": "delegacion_total",
+   "antes": "dame el código que optimice el largo del código de las regresiones",
+   "despues": "Tengo varias regresiones en R con muchas variables repetidas entre modelos. Antes de escribir código, ¿cómo podría organizar las variables de control en listas para no repetirlas? Quiero decidir primero cuáles son base y cuáles cambian según el modelo.",
+   "ejercicio": "Diseña en papel qué variables son base y cuáles cambian, agrúpalas en listas nombradas y escribe tu versión antes de compararla con la de la IA."},
+  {"modo": "delegacion_total",
+   "antes": "porfa dame el code para apagar warnings, me sale uno por cada fila al importar este df [warning: Expecting logical ... got '2']",
+   "despues": "Me sale un warning al importar mi base: \"Expecting logical ... got '2'\", repetido en cada fila. Antes de silenciarlo quiero entenderlo: ¿qué tipo de dato espera la columna y por qué aparece un 2? ¿Cómo especifico los tipos de columna al importar?",
+   "ejercicio": "Busca la celda que indica el warning y escribe un import con col_types explícitos, sin silenciar nada."},
+  {"modo": "depuracion_iterativa",
+   "antes": "gracias! funciona pero mira, en r me sale precioso y descargado sale con el fondo negro y no se ve el título",
+   "despues": "El gráfico se ve bien en R, pero al guardarlo sale con fondo negro y sin título. ¿Qué crees que causa cada cosa? Quiero entenderlo antes de cambiar algo: ¿cómo compruebo si es el fondo del formato o el tamaño del archivo?",
+   "ejercicio": "Formula una hipótesis para el fondo y otra para el título, y pruébalas por separado con bg = \"white\" y con width/height en ggsave()."},
+  {"modo": "dependencia_progresiva",
+   "antes": "bien! solo quiero mean, sd y N, no me des error estándar",
+   "despues": "¿Qué estadísticos descriptivos me conviene reportar por período y grupo, y cómo organizo la tabla antes de que me des el código?",
+   "ejercicio": "Escribe qué estadísticos necesitas y por qué, y dibuja las columnas de la tabla antes de pedir el código."}
+]

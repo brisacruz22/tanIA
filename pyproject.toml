@@ -1,7 +1,7 @@
 [project]
 name = "tania"
 version = "0.1.0"
-description = "Add your description here"
+description = "TanIA: diagnóstico de cómo usas la IA para programar y qué dejas de aprender"
 readme = "README.md"
 authors = [
     { name = "Brisa C.", email = "121908266+brisacruz22@users.noreply.github.com" }

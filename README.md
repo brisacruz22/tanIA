@@ -93,6 +93,12 @@ Revisión de literatura completa: [`docs/research/revision-literatura.md`](docs/
 3. **Recomendaciones:** reformulaciones, plan de repaso, mini prueba sin IA y una caja para analizar un prompt tuyo en vivo (no se guarda).
 4. **Vista docente:** resultados agregados por grupo, nunca individuales, con un mínimo de 8 personas por grupo.
 
+| Uso | Cognición |
+| --- | --- |
+| ![Uso](docs/img/uso.png) | ![Cognición](docs/img/cognicion.png) |
+| **Recomendaciones** | **Vista institucional** |
+| ![Recomendaciones](docs/img/recomendaciones.png) | ![Vista institucional](docs/img/institucional.png) |
+
 **Arquitectura:**
 
 ```mermaid
@@ -141,7 +147,7 @@ El negocio principal es **institucional**: las universidades ya están preocupad
 - Mariana pagaría por el módulo de escritura lo que paga por su suscripción de música.
 - Sobre instituciones: la universidad "está hiper preocupada" y "sí te pagaría" (Sofía). Organismos con misión de desarrollo y universidades grandes de investigación también (Mariana).
 
-**Costo por usuario:** cada prompt usa ~800 tokens de entrada y ~150 de salida. Un estudiante típico (100 prompts al mes) cuesta **US$ 0.016 al mes** en tokens. Margen de contribución de más de 90 % en el plan institucional.
+**Costo por usuario:** cada prompt usa ~800 tokens de entrada y ~150 de salida. Un estudiante típico (100 prompts al mes) cuesta **US$ 0.016 al mes** en tokens. **Costo de servidor:** el piloto corre gratis en Streamlit Community Cloud. Al escalar, un servidor pequeño en la nube cuesta del orden de US$ 20 a 50 al mes, lo que con 1,000 estudiantes institucionales suma menos de US$ 0.05 por estudiante al mes. Margen de contribución de más de 90 % en el plan institucional.
 
 **Vista institucional, con privacidad desde el diseño:**
 
