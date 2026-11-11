@@ -49,6 +49,26 @@ h1, h2, h3 { font-family: Georgia, 'Times New Roman', serif !important; font-wei
            padding: 1rem 1.2rem; margin-bottom: .8rem; }
 .antes { color: #52514e; text-decoration: line-through; text-decoration-color: #eb6834; }
 .etiqueta { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: #898781; }
+.hero { background: linear-gradient(120deg, #fff4e8 0%, #fde3cf 55%, #f9d5c2 100%);
+        border-radius: 22px; padding: 2rem 2.2rem 1.6rem; margin-bottom: 1.2rem; border: 1px solid #f3d9c4; }
+.hero h1 { font-size: 3.4rem !important; margin: 0 0 .2rem 0; padding: 0; }
+.hero .lema { font-size: 1.25rem; font-weight: 600; color: #1f1d1a; margin: 0 0 .5rem 0; }
+.hero .desc { color: #52514e; margin: 0 0 .9rem 0; max-width: 46rem; }
+.pastilla { display: inline-block; background: #ffffffb0; border: 1px solid #efcfb7; border-radius: 999px;
+            padding: .15rem .7rem; margin: 0 .35rem .35rem 0; font-size: .82rem; color: #52514e; }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; margin: .4rem 0 1.2rem; }
+.kpi { background: #fffdf8; border: 1px solid #ece3d3; border-radius: 16px; padding: 1rem 1.2rem; }
+.kpi .num { font-family: Georgia, serif; font-size: 2.4rem; font-weight: 700; color: #1f1d1a; line-height: 1.1; }
+.kpi .lbl { color: #52514e; font-size: .9rem; }
+.kpi.alerta .num { color: #eb6834; }
+.st-key-tania { background: #fff6ee; border-radius: 16px; padding: 1.4rem 1.6rem; }
+.frase { background: #ffffff; border-left: 4px solid #eb6834; border-radius: 10px; padding: 1rem 1.2rem;
+         margin: .2rem 0 1.2rem; font-size: 1.05rem; }
+.frase b { color: #c4521f; }
+.st-key-ingreso { background: linear-gradient(160deg, #fff4e8 0%, #fde3cf 60%, #f9d5c2 100%);
+        border: 1px solid #f3d9c4; border-radius: 24px; padding: 2.4rem 2.2rem 1.6rem; margin-top: 3rem; }
+.logo { font-family: Georgia, serif; font-size: 3.6rem; font-weight: 700; text-align: center; color: #1f1d1a; }
+.lema-ingreso { text-align: center; font-weight: 600; margin-bottom: 1.4rem; }
 .pie { text-align: center; color: #52514e; font-size: .85rem; margin-top: 2rem; }
 .stButton button { background: #1f1d1a; color: #fbf6ec; border-radius: 6px 18px 6px 6px; }
 </style>
@@ -118,11 +138,36 @@ def barras(datos: dict, color, titulo_x="% de tus prompts", oscuro=False):
 # ---------------------------------------------------------------------------
 # 2. Encabezado
 # ---------------------------------------------------------------------------
-st.title("TanIA")
-st.markdown("**Haz más con IA, sin dejar de aprender.**")
-st.caption("TanIA lee tus prompts de programación y te muestra cómo estás usando la IA: "
-           "qué habilidades dejas de practicar, qué procesos de pensamiento te saltas "
-           "y cómo pedir ayuda sin dejar de aprender.")
+# ---------------------------------------------------------------------------
+# 2. Ingreso (demo: sin contraseña, con datos de ejemplo)
+# ---------------------------------------------------------------------------
+if "rol" not in st.session_state:
+    _, centro, _ = st.columns([1, 1.6, 1])
+    with centro, st.container(key="ingreso"):
+        st.markdown("<div class='logo'>TanIA</div>"
+                    "<p class='lema-ingreso'>Haz más con IA, sin dejar de aprender.</p>",
+                    unsafe_allow_html=True)
+        rol = st.radio("¿Cómo quieres entrar?", ["Soy estudiante o profesional", "Soy una institución"],
+                       label_visibility="collapsed")
+        st.text_input("Correo", placeholder="tu@correo.com")
+        if st.button("Entrar", type="primary", width="stretch"):
+            st.session_state["rol"] = rol
+            st.rerun()
+        st.caption("Versión demo: no necesitas cuenta ni contraseña y verás datos de ejemplo. "
+                   "En la versión final, cada persona solo ve su propio diagnóstico.")
+    st.stop()
+
+if st.sidebar.button("Cerrar sesión"):
+    del st.session_state["rol"]
+    st.rerun()
+
+st.markdown("""<div class='hero'><h1>TanIA</h1>
+<p class='lema'>Haz más con IA, sin dejar de aprender.</p>
+<p class='desc'>Leemos tus prompts de programación y te mostramos cómo estás usando la IA: qué habilidades
+dejas de practicar, qué procesos de pensamiento te saltas y cómo pedir ayuda sin dejar de aprender.</p>
+<span class='pastilla'>🔎 Diagnóstico</span><span class='pastilla'>🌙 Cognición</span>
+<span class='pastilla'>🧋 Recomendaciones</span><span class='pastilla'>🔒 Tus prompts no se guardan</span>
+</div>""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # 3. Vista institucional: otra audiencia (universidades), siempre agregada
@@ -152,8 +197,7 @@ def vista_institucional():
 PIE = ("<div class='pie'>🔒 Privacidad absoluta: tus prompts no se guardan ni se comparten. "
        "Las instituciones solo ven datos agregados.</div>")
 
-vista = st.sidebar.radio("Vista", ["Mi diagnóstico", "Vista institucional"])
-if vista == "Vista institucional":
+if st.session_state["rol"] == "Soy una institución":
     vista_institucional()
     st.markdown(PIE, unsafe_allow_html=True)
     st.stop()
@@ -168,15 +212,25 @@ if not resumen:
     st.stop()
 
 pct_bajo = sum(v for k, v in resumen["modo_pct"].items() if k in BAJOS)
-c1, c2, c3 = st.columns(3)
-c1.metric("Prompts de programación analizados", resumen["n_prompts"])
-c2.metric("Con bajo aprendizaje", f"{pct_bajo:.0f} %")
-c3.metric("Muestran un intento propio", f"{resumen['esfuerzo_previo_pct']:.0f} %")
+st.markdown(f"""<div class='kpis'>
+<div class='kpi'><div class='num'>{resumen['n_prompts']}</div><div class='lbl'>prompts de programación analizados</div></div>
+<div class='kpi alerta'><div class='num'>{pct_bajo:.0f} %</div><div class='lbl'>en modos de bajo aprendizaje</div></div>
+<div class='kpi'><div class='num'>{resumen['esfuerzo_previo_pct']:.0f} %</div><div class='lbl'>muestran un intento propio</div></div>
+</div>""", unsafe_allow_html=True)
 
-uso, cognicion, recomendaciones = st.tabs(["Uso", "Cognición", "Recomendaciones"])
+uso, cognicion, recomendaciones = st.tabs(["🔎 Uso", "🌙 Cognición", "🧋 Recomendaciones"])
 
 # --- Uso (TanIA): cómo le pides las cosas a la IA ---
-with uso:
+with uso, st.container(key="tania"):
+    st.markdown("<span class='etiqueta'>🔎 TanIA · tu forma de usar la IA</span>", unsafe_allow_html=True)
+    modo_top = max(resumen["modo_pct"], key=resumen["modo_pct"].get)
+    frase = (f"Tu modo más frecuente es <b>{bonito(modo_top).lower()}</b> "
+             f"({resumen['modo_pct'][modo_top]:.0f} % de tus prompts).")
+    post = resumen.get("postura_pct", {})
+    if post.get("contratista"):
+        frase += (f" Le hablas a la IA como <b>contratista</b> en el {post['contratista']:.0f} % de los casos: "
+                  "das órdenes más que preguntas.")
+    st.markdown(f"<div class='frase'>{frase}</div>", unsafe_allow_html=True)
     st.subheader("¿Cómo le pides las cosas a la IA?")
     st.plotly_chart(barras(resumen["modo_pct"], lambda k: BAJO if k in BAJOS else ALTO),
                     width="stretch")
