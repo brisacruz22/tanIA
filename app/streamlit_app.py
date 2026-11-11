@@ -51,8 +51,10 @@ h1, h2, h3 { font-family: Georgia, 'Times New Roman', serif !important; font-wei
            padding: 1rem 1.2rem; margin-bottom: .8rem; }
 .antes { color: #52514e; text-decoration: line-through; text-decoration-color: #eb6834; }
 .etiqueta { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: #898781; }
-.hero { background: linear-gradient(120deg, #fff4e8 0%, #fde3cf 55%, #f9d5c2 100%);
-        border-radius: 22px; padding: 2rem 2.2rem 1.6rem; margin-bottom: 1.2rem; border: 1px solid #f3d9c4; }
+.hero { background: #fffaf2; border-radius: 22px; padding: 1.8rem 2rem; margin-bottom: 1.2rem;
+        border: 1px solid #ece3d3; display: grid; grid-template-columns: 1fr 1.15fr; gap: 2rem; align-items: center; }
+.hero-texto { min-width: 0; }
+@media (max-width: 800px) { .hero { grid-template-columns: 1fr; } }
 .hero h1 { font-size: 3.4rem !important; margin: 0 0 .2rem 0; padding: 0; }
 .hero .lema { font-size: 1.25rem; font-weight: 600; color: #1f1d1a; margin: 0 0 .5rem 0; }
 .hero .desc { color: #52514e; margin: 0 0 .9rem 0; max-width: 46rem; }
@@ -67,12 +69,13 @@ h1, h2, h3 { font-family: Georgia, 'Times New Roman', serif !important; font-wei
 .frase { background: #ffffff; border-left: 4px solid #eb6834; border-radius: 10px; padding: 1rem 1.2rem;
          margin: .2rem 0 1.2rem; font-size: 1.05rem; }
 .frase b { color: #c4521f; }
-.st-key-ingreso { background: linear-gradient(160deg, #fff4e8 0%, #fde3cf 60%, #f9d5c2 100%);
+.st-key-ingreso { background: #fffaf2;
         border: 1px solid #f3d9c4; border-radius: 24px; padding: 2.4rem 2.2rem 1.6rem; margin-top: 3rem; }
 .logo { font-family: Georgia, serif; font-size: 3.6rem; font-weight: 700; text-align: center; color: #1f1d1a; }
 .lema-ingreso { text-align: center; font-weight: 600; margin-bottom: 1.4rem; }
 .portada { text-align: left; }
-.gif { width: 100%; max-height: 260px; object-fit: cover; border-radius: 16px; margin-bottom: 1.2rem; }
+.gifbox { min-width: 0; }
+.gifbox img { width: 100%; height: auto; display: block; border-radius: 14px; }
 .evid, .testimonio, .plan { background: #fffdf8; border: 1px solid #ece3d3; border-radius: 16px;
         padding: 1.1rem 1.2rem; height: 100%; }
 .evid .num { font-family: Georgia, serif; font-size: 2.2rem; font-weight: 700; color: #eb6834; }
@@ -169,7 +172,7 @@ def gif_html() -> str:
     if not GIF.exists():
         return ""
     datos = base64.b64encode(GIF.read_bytes()).decode()
-    return f"<img class='gif' src='data:image/gif;base64,{datos}' alt='TanIA'>"
+    return f"<div class='gifbox'><img src='data:image/gif;base64,{datos}' alt='TanIA'></div>"
 
 
 REFERENCIAS = """<div class='refs'><b>Referencias</b><ol>
@@ -189,11 +192,10 @@ def ir_a_ingreso():
 
 
 def portada():
-    st.markdown(f"""<div class='hero portada'>{gif_html()}<h1>TanIA</h1>
+    st.markdown(f"""<div class='hero portada'><div class='hero-texto'><h1>TanIA</h1>
 <p class='lema'>Haz más con IA, sin dejar de aprender.</p>
-<p class='desc'>La IA te hace más productiva, pero puede quitarte la práctica que te hace aprender.
-TanIA lee tus prompts y te muestra qué habilidades estás dejando de ejercitar, qué procesos de pensamiento
-te saltas y cómo pedir ayuda sin dejar de aprender.</p></div>""", unsafe_allow_html=True)
+<p class='desc'>Te mostramos qué habilidades dejas de practicar cuando usas IA, y cómo seguir aprendiendo.</p>
+</div>{gif_html()}</div>""", unsafe_allow_html=True)
     b1, b2, _ = st.columns([1, 1, 3])
     b1.button("Iniciar sesión", type="primary", width="stretch", on_click=ir_a_ingreso, key="ini1")
     b2.button("Registrarse", width="stretch", on_click=ir_a_ingreso, key="reg1")
@@ -265,13 +267,11 @@ if st.sidebar.button("Cerrar sesión"):
     st.session_state["pantalla"] = "portada"
     st.rerun()
 
-st.markdown("""<div class='hero'><h1>TanIA</h1>
+st.markdown(f"""<div class='hero'><div class='hero-texto'><h1>TanIA</h1>
 <p class='lema'>Haz más con IA, sin dejar de aprender.</p>
-<p class='desc'>Leemos tus prompts de programación y te mostramos cómo estás usando la IA: qué habilidades
-dejas de practicar, qué procesos de pensamiento te saltas y cómo pedir ayuda sin dejar de aprender.</p>
 <span class='pastilla'>🔎 Diagnóstico</span><span class='pastilla'>🌙 Cognición</span>
-<span class='pastilla'>🧋 Recomendaciones</span><span class='pastilla'>🔒 Tus prompts no se guardan</span>
-</div>""", unsafe_allow_html=True)
+<span class='pastilla'>🧋 Recomendaciones</span><span class='pastilla'>🔒 Privado</span>
+</div>{gif_html()}</div>""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # 3. Vista institucional: otra audiencia (universidades), siempre agregada

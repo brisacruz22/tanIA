@@ -16,3 +16,6 @@ conversations.json
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Fotos originales del GIF (solo se sube app/assets/encabezado.gif)
+app/assets/fotos-gif/
