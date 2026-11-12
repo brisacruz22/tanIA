@@ -97,23 +97,41 @@ def correr(n: int):
                                 **c.model_dump()}, ensure_ascii=False) + "\n")
 
 
+def pct(serie) -> dict:
+    return {k: round(v * 100, 1) for k, v in serie.value_counts(normalize=True).items()}
+
+
 def agregar():
+    """Solo agregados (grupos de 8 personas o más) para la vista institucional."""
     df = pd.DataFrame([json.loads(l) for l in SALIDA.read_text(encoding="utf-8").splitlines() if l.strip()])
     df = df[df["es_programacion"]]
     df["bajo"] = df["modo"].isin(BAJO_APRENDIZAJE)
-    grupos, ocultos = [], 0
-    for g, d in df.groupby("grupo"):
+    grupos, ocultos, visibles = [], 0, []
+    for g, d in sorted(df.groupby("grupo"), key=lambda x: int(str(x[0])[1:]) if str(x[0])[1:].isdigit() else 0):
         if d["persona"].nunique() < MINIMO_GRUPO:      # regla de privacidad
             ocultos += 1
             continue
+        visibles.append(g)
         hab = d.loc[d["habilidad_no_ejercitada"] != "ninguna", "habilidad_no_ejercitada"]
         nombre = f"Tarea {g[1:]}" if str(g)[:1] == "a" and str(g)[1:].isdigit() else str(g)
         grupos.append({"grupo": nombre, "n_personas": int(d["persona"].nunique()), "n_prompts": int(len(d)),
                        "pct_bajo": round(d["bajo"].mean() * 100, 1),
+                       "pct_contratista": round((d["postura"] == "contratista").mean() * 100, 1),
                        "habilidad_top": hab.mode().iat[0] if len(hab) else "ninguna"})
+    v = df[df["grupo"].isin(visibles)]
+    hab = v.loc[v["habilidad_no_ejercitada"] != "ninguna", "habilidad_no_ejercitada"]
+    proc = v.loc[v["proceso_cognitivo_omitido"] != "ninguno", "proceso_cognitivo_omitido"]
+    curso = {"n_prompts": int(len(v)), "n_personas": int(v["persona"].nunique()),
+             "pct_bajo": round(v["bajo"].mean() * 100, 1),
+             "esfuerzo_previo_pct": round(v["esfuerzo_previo_visible"].mean() * 100, 1),
+             "modo_pct": pct(v["modo"]), "postura_pct": pct(v["postura"]),
+             "habilidad_pct": pct(hab), "proceso_pct": pct(proc),
+             "aprendizaje_por_postura_pct": {p: {"bajo": round(d["bajo"].mean() * 100, 1),
+                                                 "alto": round((~d["bajo"]).mean() * 100, 1)}
+                                             for p, d in v.groupby("postura")}}
     AGREGADO.parent.mkdir(parents=True, exist_ok=True)
     AGREGADO.write_text(json.dumps({
-        "grupos": grupos, "ocultos": ocultos,
+        "curso": curso, "grupos": grupos, "ocultos": ocultos,
         "fuente": "Datos: StudyChat (McNichols, Ikram y Lan, 2026), CC BY 4.0. Muestra reclasificada con la tipología de TanIA.",
     }, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"{len(grupos)} grupos visibles, {ocultos} ocultos")
@@ -123,8 +141,11 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--columnas", action="store_true")
     p.add_argument("--n", type=int, default=300)
+    p.add_argument("--solo-agregar", action="store_true", help="recalcula el agregado sin llamar a la API")
     a = p.parse_args()
-    if a.columnas:
+    if a.solo_agregar:
+        agregar()
+    elif a.columnas:
         d = cargar()
         print(d.columns.tolist())
         print(d.head(3).T)

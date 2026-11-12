@@ -1,10 +1,51 @@
 {
+  "curso": {
+    "n_prompts": 212,
+    "n_personas": 105,
+    "pct_bajo": 58.0,
+    "esfuerzo_previo_pct": 23.6,
+    "modo_pct": {
+      "pregunta_conceptual": 38.7,
+      "delegacion_total": 33.5,
+      "depuracion_iterativa": 23.6,
+      "generar_luego_comprender": 3.3,
+      "dependencia_progresiva": 0.9
+    },
+    "postura_pct": {
+      "contratista": 56.1,
+      "consultor": 43.9
+    },
+    "habilidad_pct": {
+      "leer_errores_y_depurar": 33.1,
+      "disenar_codigo": 20.8,
+      "descomponer_problema": 18.8,
+      "sintaxis_y_librerias": 14.9,
+      "interpretar_resultados": 12.3
+    },
+    "proceso_pct": {
+      "planificar": 50.7,
+      "monitorear": 34.7,
+      "evaluar": 10.0,
+      "recordar_y_transferir": 4.7
+    },
+    "aprendizaje_por_postura_pct": {
+      "consultor": {
+        "bajo": 19.4,
+        "alto": 80.6
+      },
+      "contratista": {
+        "bajo": 88.2,
+        "alto": 11.8
+      }
+    }
+  },
   "grupos": [
     {
       "grupo": "Tarea 2",
       "n_personas": 38,
       "n_prompts": 49,
       "pct_bajo": 65.3,
+      "pct_contratista": 67.3,
       "habilidad_top": "leer_errores_y_depurar"
     },
     {
@@ -12,6 +53,7 @@
       "n_personas": 40,
       "n_prompts": 44,
       "pct_bajo": 50.0,
+      "pct_contratista": 50.0,
       "habilidad_top": "descomponer_problema"
     },
     {
@@ -19,6 +61,7 @@
       "n_personas": 34,
       "n_prompts": 37,
       "pct_bajo": 51.4,
+      "pct_contratista": 45.9,
       "habilidad_top": "sintaxis_y_librerias"
     },
     {
@@ -26,6 +69,7 @@
       "n_personas": 39,
       "n_prompts": 44,
       "pct_bajo": 63.6,
+      "pct_contratista": 61.4,
       "habilidad_top": "leer_errores_y_depurar"
     },
     {
@@ -33,6 +77,7 @@
       "n_personas": 33,
       "n_prompts": 38,
       "pct_bajo": 57.9,
+      "pct_contratista": 52.6,
       "habilidad_top": "leer_errores_y_depurar"
     }
   ],

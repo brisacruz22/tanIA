@@ -16,10 +16,12 @@ from pathlib import Path
 
 import plotly.graph_objects as go
 import streamlit as st
+from dotenv import load_dotenv
 
 RAIZ = Path(__file__).resolve().parents[1]
 AGG = RAIZ / "data" / "agg"
 sys.path.insert(0, str(RAIZ / "backend"))
+load_dotenv(RAIZ / ".env")   # en local, la clave vive en .env (nunca en el repo)
 
 st.set_page_config(page_title="TanIA", page_icon="🌱", layout="wide")
 
@@ -95,6 +97,7 @@ h1, h2, h3 { font-family: Georgia, 'Times New Roman', serif !important; font-wei
 .refs a { color: #6b6964; }
 .pie { text-align: center; color: #52514e; font-size: .85rem; margin-top: 2rem; }
 .stButton button { background: #1f1d1a; color: #fbf6ec; border-radius: 6px 18px 6px 6px; }
+.stButton button[kind="secondary"] { background: transparent; color: #1f1d1a; border: 1.5px solid #1f1d1a; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -203,58 +206,157 @@ def ir_a_ingreso():
     st.session_state["pantalla"] = "ingreso"
 
 
+# Portadas de impacto: (pregunta, a quién le habla, archivo de fondo opcional en app/assets/)
+PORTADAS = [
+    ("¿Haciendo más, pero aprendiendo menos?", "Para ti", "portada-1.jpg"),
+    ("¿Qué harías si te dijeran que tus estudiantes entregan mejores tareas, pero no están aprendiendo más?",
+     "Para tu institución", "portada-2.jpg"),
+]
+
+PARRAFO_INSTITUCION = ("TanIA parte de un paradigma que diferencia el desempeño del aprendizaje. Con IA, tus "
+    "estudiantes entregan mejores tareas, pero en los experimentos rinden hasta 17 % menos cuando la IA ya no "
+    "está, y no lo notan. Prohibirla no funciona; detectarla no es suficiente. TanIA le muestra a tu institución "
+    "cómo la están usando sus estudiantes y qué habilidades están dejando de practicar, curso por curso, para que "
+    "sepas qué reforzar en clase. Siempre con datos agregados, sin rankings ni vigilancia individual.")
+
+
+def fondo(nombre: str) -> str:
+    ruta = RAIZ / "app" / "assets" / nombre
+    if not ruta.exists():
+        return ""
+    tipo = "png" if ruta.suffix == ".png" else "jpeg"
+    return f"background-image: url('data:image/{tipo};base64,{base64.b64encode(ruta.read_bytes()).decode()}');"
+
+
+def portada_impacto():
+    n = len(PORTADAS)
+    ciclo = 6 * n
+    diapos = "".join(
+        f"<div class='diapo' style='animation-delay:{i * 6}s'><div class='foto' style=\"{fondo(f)}\"></div><div class='velo'></div>"
+        f"<div class='diapo-txt'><span class='para'>{para}</span><p class='pregunta'>{preg}</p></div></div>"
+        for i, (preg, para, f) in enumerate(PORTADAS))
+    st.markdown(f"""<style>
+.impacto {{ position: relative; height: calc(100vh - 5rem); min-height: 520px; border-radius: 26px;
+           overflow: hidden; margin: -1rem 0 4rem; background: #111; }}
+.foto {{ position: absolute; inset: -12px; background-size: cover; background-position: center; filter: blur(7px); }}
+.diapo {{ position: absolute; inset: 0;
+         opacity: 0; animation: fundido {ciclo}s infinite; display: flex; align-items: center; justify-content: center; }}
+.diapo:first-child {{ opacity: 1; }}
+.velo {{ position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.58), rgba(0,0,0,.72)); }}
+.diapo-txt {{ position: relative; max-width: 64rem; padding: 0 2.5rem; text-align: center; }}
+.para {{ font-size: 1rem !important; letter-spacing: .2em; text-transform: uppercase; color: #f6c945; }}
+.pregunta {{ font-family: Georgia, serif; font-weight: 700; color: #ffffff; line-height: 1.12;
+            font-size: clamp(2.6rem, 5.4vw, 5rem) !important; margin: 1rem 0 0 !important; text-shadow: 0 2px 24px rgba(0,0,0,.45); }}
+@keyframes fundido {{ 0% {{opacity:0}} 6% {{opacity:1}} {100/n - 6:.0f}% {{opacity:1}} {100/n:.0f}% {{opacity:0}} 100% {{opacity:0}} }}
+.firma {{ position: absolute; left: 2rem; bottom: 1.6rem; font-family: Georgia, serif; font-weight: 700;
+         color: #ffffff; font-size: 1.2rem; z-index: 2; }}
+.firma span {{ font-family: sans-serif; font-weight: 400; color: #ffffffb3; font-size: .85rem; margin-left: .3rem; }}
+.bajar {{ position: absolute; left: 50%; bottom: 1.4rem; transform: translateX(-50%); z-index: 2; color: #ffffffcc;
+         font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; text-align: center;
+         animation: flotar 2.2s ease-in-out infinite; }}
+.bajar b {{ display: block; font-size: 1.8rem; color: #f6c945; }}
+@keyframes flotar {{ 0%,100% {{transform: translate(-50%, 0)}} 50% {{transform: translate(-50%, 8px)}} }}
+</style>
+<div class='impacto'>{diapos}<div class='firma'>TanIA<span>demo</span></div>
+<div class='bajar'>Desliza<b>↓</b></div></div>""", unsafe_allow_html=True)
+
+
 def portada():
-    st.markdown(f"""<div class='cinta'>{gif_img()}<div class='cuerpo'><h1>TanIA</h1>
+    portada_impacto()
+    st.markdown("""<style>
+.landing h2 { font-size: 2.1rem !important; margin: 0 0 1.4rem; }
+.landing .kicker { font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; color: #c4521f; margin-bottom: .4rem; }
+.seccion { margin: 0 0 5rem; }
+.cifras { display: grid; grid-template-columns: repeat(3, 1fr); }
+.cifra { padding: 0 1.8rem; border-left: 1px solid #e3d9c6; }
+.cifra:first-child { border-left: 0; padding-left: 0; }
+.cifra .num { font-family: Georgia, serif; font-size: 3.4rem; font-weight: 700; color: #eb6834; line-height: 1; }
+.cifra .que { font-size: 1.05rem; font-weight: 600; color: #1f1d1a; margin: .7rem 0 .3rem; }
+.cifra .det { color: #52514e; font-size: .92rem; }
+.cifra sup, .voz sup { color: #c4521f; }
+.voces { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.4rem; }
+.voz p { font-family: Georgia, serif; font-style: italic; font-size: 1.12rem; line-height: 1.5; color: #1f1d1a; margin: 0; }
+.voz .quien { font-variant: small-caps; letter-spacing: .05em; color: #898781; margin-top: .8rem; font-size: .95rem; }
+.pasos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; counter-reset: paso; }
+.paso::before { counter-increment: paso; content: counter(paso); display: inline-flex; width: 2.4rem; height: 2.4rem;
+        border-radius: 50%; border: 1.5px solid #eb6834; color: #eb6834; align-items: center; justify-content: center;
+        font-family: Georgia, serif; font-weight: 700; margin-bottom: .8rem; }
+.paso b { display: block; font-size: 1.1rem; color: #1f1d1a; margin-bottom: .2rem; }
+.paso span { color: #52514e; font-size: .95rem; }
+.institucion { background: #14213d; border-radius: 26px; padding: 3.2rem 3.4rem; position: relative; overflow: hidden; }
+.institucion::before { content: "✦"; position: absolute; top: 1.4rem; right: 2rem; color: #f6c945; font-size: 1.4rem; }
+.institucion .kicker { color: #f6c945; }
+.institucion h2 { color: #ffffff !important; }
+.institucion p { color: #e6ebf5; font-size: 1.12rem; line-height: 1.65; max-width: 46rem; text-align: justify; margin: 0; }
+.planes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.plan2 { border: 1px solid #e3d9c6; border-radius: 18px; padding: 1.4rem 1.3rem; background: #fffdf8; }
+.plan2.destacado { border: 2px solid #eb6834; background: #fff6ee; position: relative; }
+.plan2.destacado::before { content: "Recomendado"; position: absolute; top: -.75rem; left: 1.2rem; background: #eb6834;
+        color: #fff; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; padding: .15rem .6rem; border-radius: 999px; }
+.plan2 .n { font-weight: 700; color: #1f1d1a; }
+.plan2 .p { font-family: Georgia, serif; font-size: 1.6rem; font-weight: 700; color: #1f1d1a; margin: .4rem 0; }
+.plan2 .p small { font-family: sans-serif; font-size: .8rem; font-weight: 400; color: #898781; }
+.plan2 .d { color: #52514e; font-size: .9rem; }
+.landing details { color: #6b6964; font-size: .82rem; border-top: 1px solid #e3d9c6; padding-top: .8rem; }
+.landing details summary { cursor: pointer; }
+.landing details ol { padding-left: 1.2rem; } .landing details li { margin-bottom: .3rem; } .landing details a { color: #6b6964; }
+@media (max-width: 800px) { .cifras, .voces, .pasos, .planes { grid-template-columns: 1fr; gap: 1.6rem; }
+  .cifra { border-left: 0; padding: 0; } .institucion { padding: 2rem 1.6rem; } }
+</style>""", unsafe_allow_html=True)
+
+    st.markdown(f"""<div class='landing'>
+<div class='cinta seccion'>{gif_img()}<div class='cuerpo'><h1>TanIA</h1>
 <p class='lema'>Haz más con IA, sin dejar de aprender.</p>
-<p class='desc'>La IA te hace más productiva, pero puede quitarte la práctica que te hace aprender.
-TanIA lee tus prompts y te muestra qué habilidades estás dejando de ejercitar, qué procesos de pensamiento
-te saltas y cómo pedir ayuda sin dejar de aprender.</p>
-</div></div>""", unsafe_allow_html=True)
-    b1, b2, _ = st.columns([1, 1, 3])
-    b1.button("Iniciar sesión", type="primary", width="stretch", on_click=ir_a_ingreso, key="ini1")
-    b2.button("Registrarse", width="stretch", on_click=ir_a_ingreso, key="reg1")
+<p class='desc'>Leemos tus prompts y te mostramos qué dejas de practicar cuando la IA lo hace por ti.</p></div></div>
 
-    st.subheader("Por qué importa")
-    e1, e2, e3 = st.columns(3)
-    e1.markdown("<div class='evid'><div class='num'>24–39 %</div>frente a 65–86 % en una prueba de "
-                "aprendizaje, según <b>cómo</b> se usa la IA: delegando o preguntando para entender."
-                "<div class='cita'>Shen y Tamkin, 2026 <sup>1</sup></div></div>", unsafe_allow_html=True)
-    e2.markdown("<div class='evid'><div class='num'>−17 %</div>en el examen sin IA de quienes practicaron "
-                "con ChatGPT sin guardrails, aunque en la práctica rindieron 48 % más. No lo notaron."
-                "<div class='cita'>Bastani et al., 2025 <sup>2</sup></div></div>", unsafe_allow_html=True)
-    e3.markdown("<div class='evid'><div class='num'>77 %</div>no pudo arreglar su propio código sin IA. "
-                "Con una pausa para explicarlo antes de aceptarlo, solo el 39 %."
-                "<div class='cita'>Sankaranarayanan, 2026 <sup>3</sup></div></div>", unsafe_allow_html=True)
+<div class='seccion'><div class='kicker'>Lo que dice la evidencia</div><h2>No es si usas IA, sino cómo.</h2>
+<div class='cifras'>
+<div class='cifra'><div class='num'>24–39 %</div><div class='que'>frente a 65–86 %, según cómo preguntas</div>
+<div class='det'>Delegar o pedir que arregle tu código deja poco aprendizaje; preguntar para entender, mucho.<sup>1</sup></div></div>
+<div class='cifra'><div class='num'>−17 %</div><div class='que'>cuando la IA ya no está, y nadie lo nota</div>
+<div class='det'>Practicaron mejor con ChatGPT, pero rindieron menos en el examen sin él.<sup>2</sup></div></div>
+<div class='cifra'><div class='num'>77 %</div><div class='que'>no pudo arreglar su propio código</div>
+<div class='det'>Con una pausa para explicarlo antes de aceptarlo, la cifra baja a 39 %.<sup>3</sup></div></div>
+</div></div>
 
-    st.subheader("Lo que nos dijeron en las entrevistas")
-    t1, t2, t3 = st.columns(3)
-    t1.markdown("<div class='testimonio'>\"Mi capacidad intelectual alrededor del código ha empeorado, "
-                "mi materia gris está en descanso.\"<div class='cita'>Sofía, analista de datos</div></div>",
-                unsafe_allow_html=True)
-    t2.markdown("<div class='testimonio'>\"Si te hacen una pregunta, you're dead.\"<div class='cita'>"
-                "Mariana, asistente de investigación, sobre presentar código hecho con IA</div></div>",
-                unsafe_allow_html=True)
-    t3.markdown("<div class='testimonio'>\"Tú no puedes evitar que la gente use IA. No lo vas a hacer "
-                "nunca.\"<div class='cita'>Tiago, investigador</div></div>", unsafe_allow_html=True)
-    st.caption("Entrevistas de investigación para diseñar TanIA, realizadas entre el 7 y el 9 de noviembre de 2026, con nombres cambiados. No son reseñas de clientes.")
+<div class='seccion'><div class='kicker'>Lo que nos dijeron</div><h2>Lo sienten, aunque no lo midan.</h2>
+<div class='voces'>
+<div class='voz'><p>“Mi capacidad intelectual alrededor del código ha empeorado, mi materia gris está en descanso. […] Es como con cualquier cosa: si no me pusiera a hablar inglés en un año, no podría hablar muy bien el inglés ahorita, ¿no?”</p><div class='quien'>Sofía, analista de datos</div></div>
+<div class='voz'><p>“Se siente como estar exponiendo algo que tú has hecho el 30 % y otra persona hizo el 70 %; y si te hacen una pregunta, you're dead.”</p><div class='quien'>Mariana, asistente de investigación, sobre presentar código hecho con IA</div></div>
+<div class='voz'><p>“Yo creo que sí lo usarían. Y creo que sería útil que lo usen. Porque ya, tú no puedes evitar que la gente use IA. No lo vas a hacer nunca. Ya no se puede.”</p><div class='quien'>Tiago, investigador, sobre el potencial de TanIA en universidades</div></div>
+</div></div>
 
-    st.subheader("Planes")
-    p1, p2, p3, p4 = st.columns(4)
-    planes = [("Prueba", "Gratis", "Hasta 200 prompts. Tu diagnóstico de uso y cognición."),
-              ("Pro", "US$ 4 / mes", "Programación: diagnóstico, reformulaciones, ejercicios y mini prueba sin IA."),
-              ("Pro Completo", "US$ 8 / mes", "Programación y escritura, con plan de aprendizaje y recordatorios."),
-              ("Institucional", "US$ 3–4 / estudiante / año", "Vista agregada por curso, privacidad desde el diseño.")]
-    for col, (nombre, precio, desc) in zip([p1, p2, p3, p4], planes):
-        col.markdown(f"<div class='plan'><div class='plan-nombre'>{nombre}</div>"
-                     f"<div class='plan-precio'>{precio}</div><p>{desc}</p></div>", unsafe_allow_html=True)
-    st.button("Empieza gratis", type="primary", on_click=ir_a_ingreso, key="ini2")
-    st.markdown(REFERENCIAS, unsafe_allow_html=True)
+<div class='seccion'><div class='kicker'>Cómo funciona</div><h2>Tres pasos, sin cambiar cómo trabajas.</h2>
+<div class='pasos'>
+<div class='paso'><b>Subes tu historial</b><span>Exportas tus chats con la IA. Nada se guarda.</span></div>
+<div class='paso'><b>Ves tu diagnóstico</b><span>Cómo pides ayuda y qué habilidades dejas de practicar.</span></div>
+<div class='paso'><b>Practicas con un plan</b><span>Prompts reformulados, ejercicios y una mini prueba sin IA.</span></div>
+</div></div>
+
+<div class='seccion institucion'><div class='kicker'>Para universidades y diplomaturas</div>
+<h2>¿Eres una institución?</h2><p>{PARRAFO_INSTITUCION}</p></div>
+
+<div class='seccion'><div class='kicker'>Planes</div><h2>Empieza gratis.</h2>
+<div class='planes'>
+<div class='plan2'><div class='n'>Prueba</div><div class='p'>Gratis</div><div class='d'>Hasta 200 prompts. Tu diagnóstico de uso y cognición.</div></div>
+<div class='plan2'><div class='n'>Pro</div><div class='p'>US$ 4 <small>/ mes</small></div><div class='d'>Programación: reformulaciones, ejercicios y mini prueba sin IA.</div></div>
+<div class='plan2 destacado'><div class='n'>Pro Completo</div><div class='p'>US$ 8 <small>/ mes</small></div><div class='d'>Programación y escritura, con plan de repaso y recordatorios.</div></div>
+<div class='plan2'><div class='n'>Institucional</div><div class='p'>US$ 3–4 <small>/ estudiante / año</small></div><div class='d'>Vista agregada por curso, privacidad desde el diseño.</div></div>
+</div></div>
+</div>""", unsafe_allow_html=True)
+
+    _, b1, b2, _ = st.columns([2, 1, 1, 2])
+    b1.button("Empieza gratis", type="primary", width="stretch", on_click=ir_a_ingreso, key="ini2")
+    b2.button("Iniciar sesión", width="stretch", on_click=ir_a_ingreso, key="ini1")
+    st.caption("Citas de entrevistas de investigación (7–9 de noviembre de 2026), con nombres cambiados; no son reseñas de clientes.")
+    refs = REFERENCIAS.replace("<div class='refs'><b>Referencias</b>", "<div class='landing'><details><summary>Fuentes</summary>").replace("</ol></div>", "</ol></details></div>")
+    st.markdown(refs, unsafe_allow_html=True)
 
 
 if "rol" not in st.session_state and st.session_state.get("pantalla") != "ingreso":
     portada()
-    st.markdown("<div class='pie'>🔒 Privacidad absoluta: tus prompts no se guardan ni se comparten. "
-                "Las instituciones solo ven datos agregados.</div>", unsafe_allow_html=True)
+    st.markdown("<div class='pie'>TanIA demo · 🔒 Tus prompts no se guardan; las instituciones solo ven datos agregados.</div>",
+                unsafe_allow_html=True)
     st.stop()
 
 if "rol" not in st.session_state:
@@ -293,26 +395,134 @@ dejas de practicar, qué procesos de pensamiento te saltas y cómo pedir ayuda s
 # ---------------------------------------------------------------------------
 # 3. Vista institucional: otra audiencia (universidades), siempre agregada
 # ---------------------------------------------------------------------------
+def escala_naranja(v, vmin, vmax):
+    """Escala secuencial de un solo tono: más intenso = más bajo aprendizaje."""
+    t = 0 if vmax == vmin else (v - vmin) / (vmax - vmin)
+    a, b = (250, 208, 184), (184, 68, 26)
+    return "#%02x%02x%02x" % tuple(round(x + (y - x) * t) for x, y in zip(a, b))
+
+
+def lienzo(fig, alto=320, oscuro=False):
+    tinta = "#ffffff" if oscuro else TINTA2
+    fig.update_layout(height=alto, margin=dict(l=10, r=30, t=10, b=30), paper_bgcolor="rgba(0,0,0,0)",
+                      plot_bgcolor="rgba(0,0,0,0)", font=dict(color=tinta),
+                      legend=dict(orientation="h", y=1.14, font=dict(color=tinta)),
+                      xaxis=dict(showgrid=False, tickfont=dict(color=tinta)),
+                      yaxis=dict(gridcolor="#2c3e66" if oscuro else "#e1e0d9", zeroline=False, tickfont=dict(color=tinta)))
+    return fig
+
+
+SIN_BARRA = {"displayModeBar": False}
+
+
 def vista_institucional():
+    inst = leer("institucional.json")
+    if not inst or not inst.get("curso"):
+        st.info("Ejemplo en preparación con datos abiertos de estudiantes (StudyChat).")
+        return
+    c, grupos = inst["curso"], inst["grupos"]
     st.markdown("<span class='etiqueta'>Vista institucional</span>", unsafe_allow_html=True)
     st.subheader("Cómo aprende tu curso con IA")
-    st.markdown("Para universidades y diplomaturas: qué modos de uso predominan en cada curso y qué habilidad "
-                "practican menos sus estudiantes, para decidir **qué reforzar en clase**.")
-    st.caption("Privacidad desde el diseño: solo agregados de 8 personas o más, sin rankings ni datos individuales, "
-               "y los prompts con contenido sensible se excluyen antes del análisis.")
-    inst = leer("institucional.json")
-    if not inst or not inst.get("grupos"):
-        st.info("Ejemplo en preparación con datos abiertos de estudiantes (StudyChat).")
-    else:
-        grupos = inst["grupos"]
-        st.plotly_chart(barras({g["grupo"]: g["pct_bajo"] for g in grupos}, BAJO,
-                               "% de prompts con bajo aprendizaje"), width="stretch", config={"displayModeBar": False})
-        for g in grupos:
-            st.markdown(f"**{g['grupo']}** · {g['n_personas']} estudiantes · {g['n_prompts']} prompts · "
-                        f"habilidad menos practicada: {bonito(g['habilidad_top'])}")
-        if inst.get("ocultos"):
-            st.caption(f"{inst['ocultos']} grupo(s) ocultos por tener menos de 8 personas.")
-        st.caption(inst.get("fuente", ""))
+    st.selectbox("Curso", ["Introducción a la programación · semestre de ejemplo (StudyChat)"],
+                 label_visibility="collapsed")
+    st.markdown(f"""<div class='kpis' style='grid-template-columns: repeat(4, 1fr)'>
+<div class='kpi'><div class='num'>{c['n_personas']}</div><div class='lbl'>estudiantes · {c['n_prompts']} prompts de programación</div></div>
+<div class='kpi alerta'><div class='num'>{c['pct_bajo']:.0f} %</div><div class='lbl'>en modos de bajo aprendizaje</div></div>
+<div class='kpi alerta'><div class='num'>{c['postura_pct'].get('contratista', 0):.0f} %</div><div class='lbl'>le dan órdenes a la IA (contratistas)</div></div>
+<div class='kpi'><div class='num'>{c['esfuerzo_previo_pct']:.0f} %</div><div class='lbl'>muestran un intento propio</div></div>
+</div>""", unsafe_allow_html=True)
+
+    peor = max(grupos, key=lambda g: g["pct_bajo"])
+    app = c["aprendizaje_por_postura_pct"]
+    uso, cognicion, reforzar = st.tabs(["🔎 Uso", "🌙 Cognición", "🧋 Qué reforzar"])
+
+    with uso, st.container(key="tania"):
+        st.markdown("<span class='etiqueta'>🔎 Cómo usa tu curso la IA</span>", unsafe_allow_html=True)
+        st.markdown(f"<div class='frase'>En tu curso, <b>{c['pct_bajo']:.0f} %</b> de los prompts de programación "
+                    f"están en modos de bajo aprendizaje. La diferencia la hace la postura: cuando preguntan como "
+                    f"<b style='color:#2a78d6'>consultores</b>, el {app['consultor']['alto']:.0f} % de sus prompts es de alto "
+                    f"aprendizaje; cuando dan órdenes como <b>contratistas</b>, el {app['contratista']['bajo']:.0f} % es de bajo "
+                    "aprendizaje (Sankaranarayanan, 2026) <sup>3</sup>.</div>", unsafe_allow_html=True)
+
+        st.subheader("A lo largo del semestre")
+        x = [g["grupo"] for g in grupos]
+        fig = go.Figure()
+        fig.add_scatter(x=x, y=[g["pct_bajo"] for g in grupos], name="Bajo aprendizaje", mode="lines+markers",
+                        line=dict(color=BAJO, width=2, shape="spline"), marker=dict(size=9, line=dict(color="#fff6ee", width=2)),
+                        hovertemplate="%{x}: %{y:.0f} %<extra>Bajo aprendizaje</extra>")
+        fig.add_scatter(x=x, y=[g["pct_contratista"] for g in grupos], name="Postura contratista", mode="lines+markers",
+                        line=dict(color="#6b6964", width=2, dash="dot", shape="spline"), marker=dict(size=8),
+                        hovertemplate="%{x}: %{y:.0f} %<extra>Contratista</extra>")
+        fig.update_yaxes(title="% de prompts", range=[0, 100])
+        st.plotly_chart(lienzo(fig), width="stretch", config=SIN_BARRA)
+        st.caption("Cada punto es una tarea del curso, en el orden en que se entregaron.")
+
+        st.subheader("¿En qué tarea se apoyan más en la IA?")
+        vals = [g["pct_bajo"] for g in grupos]
+        orden = sorted(grupos, key=lambda g: g["pct_bajo"])
+        fig = go.Figure(go.Bar(
+            x=[g["pct_bajo"] for g in orden], y=[g["grupo"] for g in orden], orientation="h",
+            marker_color=[escala_naranja(g["pct_bajo"], min(vals), max(vals)) for g in orden],
+            text=[f"{g['pct_bajo']:.0f} %" + ("  ← la más crítica" if g is peor else "") for g in orden],
+            textposition="outside", cliponaxis=False,
+            customdata=[[g["n_personas"], bonito(g["habilidad_top"])] for g in orden],
+            hovertemplate="%{y}: %{x:.0f} %<br>%{customdata[0]} estudiantes<br>Menos practicada: %{customdata[1]}<extra></extra>"))
+        fig.update_xaxes(title="% de prompts con bajo aprendizaje", range=[0, 100], showgrid=True, gridcolor="#e1e0d9")
+        fig.update_layout(bargap=0.45)
+        st.plotly_chart(lienzo(fig, 290), width="stretch", config=SIN_BARRA)
+
+        st.subheader("¿Cómo le piden las cosas a la IA?")
+        st.plotly_chart(barras(c["modo_pct"], lambda k: BAJO if k in BAJOS else ALTO, "% de los prompts del curso"),
+                        width="stretch", config=SIN_BARRA)
+        st.markdown(f"<span style='color:{BAJO}'>■</span> bajo aprendizaje &nbsp;&nbsp; "
+                    f"<span style='color:{ALTO}'>■</span> alto aprendizaje", unsafe_allow_html=True)
+
+    with cognicion, st.container(key="ketty"):
+        st.markdown("<span class='etiqueta'>🌙 Ketty · lo que el curso deja de practicar</span>", unsafe_allow_html=True)
+        hab_top = max(c["habilidad_pct"], key=c["habilidad_pct"].get)
+        proc_top = max(c["proceso_pct"], key=c["proceso_pct"].get)
+        st.markdown(f"<div class='ketty-caja'>La habilidad que más delegan es <b>{bonito(hab_top).lower()}</b> "
+                    f"({c['habilidad_pct'][hab_top]:.0f} %), y el proceso que más se saltan es <b>{bonito(proc_top).lower()}</b> "
+                    f"({c['proceso_pct'][proc_top]:.0f} %): piden la solución antes de decidir cómo abordar el problema.</div>",
+                    unsafe_allow_html=True)
+        st.subheader("Habilidades que dejan de practicar")
+        st.plotly_chart(barras(c["habilidad_pct"], CELESTE, "% de los prompts", oscuro=True), width="stretch", config=SIN_BARRA)
+        st.subheader("Procesos de pensamiento que se saltan")
+        st.plotly_chart(barras(c["proceso_pct"], CELESTE, "% de los prompts", oscuro=True), width="stretch", config=SIN_BARRA)
+
+    with reforzar, st.container(key="sandra"):
+        st.markdown("<span class='etiqueta'>📓✏️ Sandra · qué reforzar en clase</span><span class='boba'>🧋</span>",
+                    unsafe_allow_html=True)
+        recs = [
+            (f"Antes de la {peor['grupo']}", f"Es la tarea con más bajo aprendizaje ({peor['pct_bajo']:.0f} %). Dedica 15 minutos "
+             "a leer un traceback en voz alta con el curso antes de que la entreguen."),
+            ("Planificar antes de pedir", f"El {c['proceso_pct'].get('planificar', 0):.0f} % se salta la planificación. Pide un "
+             "plan de tres pasos escrito a mano antes de abrir la IA."),
+            ("Enseñar a preguntar", f"Preguntar como consultor multiplica el aprendizaje ({app['consultor']['alto']:.0f} % frente a "
+             f"{app['contratista']['alto']:.0f} %). Muestra en clase cómo reformular una orden en una pregunta."),
+        ]
+        for titulo, texto in recs:
+            st.markdown(f"<div class='tarjeta'><b>{titulo}</b><br>{texto}</div>", unsafe_allow_html=True)
+
+        st.subheader("Lo que verías con TanIA en uso")
+        st.markdown("<span class='etiqueta'>Datos simulados · ilustración de funciones futuras</span>", unsafe_allow_html=True)
+        sem = ["Semana 1", "Semana 4", "Semana 8"]
+        fig = go.Figure()
+        fig.add_bar(x=sem, y=[64, 55, 46], name="Bajo aprendizaje (simulado)",
+                    marker=dict(color="#f4c6d6", line=dict(color="#b04a74", width=1.5), pattern=dict(shape="/", fgcolor="#b04a74")))
+        fig.add_bar(x=sem, y=[71, 63, 58], name="Confianza autodeclarada en la mini prueba (simulado)",
+                    marker=dict(color="#ffffff", line=dict(color="#898781", width=1.5), pattern=dict(shape="\\", fgcolor="#898781")))
+        fig.add_scatter(x=sem, y=[48, 55, 61], name="Nota real en la mini prueba sin IA (simulado)", mode="lines+markers",
+                        line=dict(color="#1f1d1a", width=2, dash="dash"), marker=dict(size=8))
+        fig.update_yaxes(title="%", range=[0, 100])
+        fig.update_layout(barmode="group", bargap=0.35)
+        st.plotly_chart(lienzo(fig, 340), width="stretch", config=SIN_BARRA)
+        st.caption("Simulado: así se vería el curso si usa los planes de repaso y la mini prueba sin IA. Al inicio creen saber "
+                   "más de lo que saben (Kruger y Dunning, 1999); la brecha entre confianza y nota se cierra con práctica.")
+
+    st.markdown(f"""<div class='tarjeta' style='margin-top:1.4rem'><b>🔒 Privacidad desde el diseño</b><br>
+Solo se muestran grupos de 8 personas o más, sin rankings ni datos individuales, y los prompts con contenido sensible
+se excluyen antes del análisis. {inst.get('fuente', '')}</div>""", unsafe_allow_html=True)
 
 
 PIE = ("<div class='pie'>🔒 Privacidad absoluta: tus prompts no se guardan ni se comparten. "
